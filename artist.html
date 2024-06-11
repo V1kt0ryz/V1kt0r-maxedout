@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.4.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
+    <title>MP3 Player - Songs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #222;
+            color: whitesmoke;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        .topbar {
+            background-color: #222;
+            color: #fff;
+            padding: 10px 20px;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        .topbar .song-info {
+            flex: 1;
+            text-align: left;
+        }
+        .topbar .current-song {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #fff;
+            text-align: right;
+            padding-right: 20px;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+        .topbar-audio {
+            flex: 0 0 auto;
+            width: 40%;
+        }
+        .topbar-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            position: absolute;
+            left: 0;
+        }
+
+        #container {
+            display: flex;
+            flex: 1;
+            margin-top: 80px;
+        }
+
+        #sidebar {
+            width: max-content; /* Festgelegte Breite */
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            overflow-y: auto;
+            border-radius: 10px;
+            margin-left: 10px;
+            position: fixed;
+            top: 80px;
+            bottom: 10px;
+        }
+        #sidebar a,
+        #sidebar button {
+            text-decoration: none;
+            color: #fff;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        #sidebar a:hover,
+        #sidebar button:hover {
+            transform: scale(1.1);
+            background-color: #666;
+        }
+
+        #content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 100px; /* Seitenleistenbreite + Abstand */
+            background-color: #333;
+            border-radius: 10px;
+            color: whitesmoke;
+            margin-bottom: 10px;
+            margin-right: 10px;
+        }
+        .song {
+            background-color: #333;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .song:hover {
+            background-color: #666;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+        p {
+            margin: 0;
+        }
+        .song-grid {
+            display: grid;
+            gap: 20px;
+        }
+        .one-per-row {
+            grid-template-columns: 1fr;
+        }
+        .two-per-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .custom-audio {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .custom-audio button {
+            background-color: #555;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .custom-audio button:hover {
+            background-color: #777;
+        }
+        .custom-audio input[type="range"] {
+            width: 150px;
+            background: #555;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="song-info">Currently playing:</div>
+        <div class="current-song"></div>
+        <div class="topbar-container">
+            <audio class="topbar-audio" controls></audio>
+        </div>
+    </div>
+    <div id="container">
+        <div id="sidebar">
+            <button class="sidebar-link" onclick="location.href='/index.html'"><i class="fi fi-sr-home"></i></button>
+            <div class="sort-options">
+                <button onclick="toggleGrid()"><i class="fi fi-sr-apps"></i></button>
+            </div>
+        </div>
+        <div id="content">
+            <h1 id="artist-name">MP3 Player - Songs</h1>
+            <div id="songs" class="song-grid one-per-row"></div>
+        </div>
+    </div>
+    <script>
+        async function loadSongs() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const artist = urlParams.get('artist');
+            document.getElementById('artist-name').textContent = `MP3 Player - Songs by ${artist}`;
+
+            const response = await fetch(`/songs/${encodeURIComponent(artist)}`);
+            const songs = await response.json();
+            const songsDiv = document.getElementById('songs');
+
+            songs.forEach(song => {
+                const songDiv = document.createElement('div');
+                songDiv.classList.add('song');
+
+                const songTitle = document.createElement('p');
+                songTitle.textContent = song.name;
+                songDiv.appendChild(songTitle);
+
+                songDiv.addEventListener('click', () => playSong(song.path, songDiv));
+
+                songsDiv.appendChild(songDiv);
+            });
+        }
+
+        function playSong(songPath, songDiv) {
+            const audioElement = document.querySelector('.topbar-audio');
+
+            audioElement.src = songPath;
+
+            const currentSong = document.querySelector('.current-song');
+            currentSong.innerHTML = '';
+            currentSong.appendChild(songDiv.cloneNode(true));
+
+            audioElement.play();
+        }
+
+        function toggleGrid() {
+            const songsDiv = document.getElementById('songs');
+            if (songsDiv.classList.contains('one-per-row')) {
+                songsDiv.classList.remove('one-per-row');
+                songsDiv.classList.add('two-per-row');
+            } else {
+                songsDiv.classList.remove('two-per-row');
+                songsDiv.classList.add('one-per-row');
+            }
+        }
+
+        window.onload = loadSongs;
+    </script>
+</body>
+</html>

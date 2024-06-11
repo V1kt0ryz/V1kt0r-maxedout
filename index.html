@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.4.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
+    <title>MP3 Player - Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #222;
+            color: whitesmoke;
+        }
+        body::-webkit-scrollbar{
+            display: none;
+        }
+
+        .topbar {
+            background-color: #222;
+            color: #fff;
+            padding: 10px 20px;
+            height: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        #container {
+            display: flex;
+            flex: 1;
+        }
+
+        #content {
+            flex: 1;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-y: auto;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .artist-button {
+            background-color: #333;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            margin: 10px;
+            width: 150px;
+            height: 200px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: whitesmoke;
+        }
+
+        .artist-button:hover {
+            background-color: #666;
+        }
+
+        .artist-button img {
+            max-width: 90%;
+            max-height: 90%;
+            margin-bottom: 10px;
+            border-radius: 10px; /* Make the image circular */
+        }
+
+        .artist-button span {
+            display: block;
+        }
+
+        .artistButtons-grid {
+            display: grid;
+            gap: 10px;
+        }
+        .one-per-row {
+            grid-template-columns: 1fr;
+        }
+        .two-per-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        #sidebar {
+            width: max-content;
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            overflow-y: auto;
+            border-radius: 10px;
+            margin-left: 10px;
+        }
+        #sidebar a,
+        #sidebar button {
+            text-decoration: none;
+            color: #fff;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        #sidebar a:hover,
+        #sidebar button:hover {
+            transform: scale(1.1);
+            background-color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <p>zAZA</p>
+    </div>
+    <div id="container">
+        <div id="sidebar">
+            <button class="sidebar-link" onclick="location.href='/index.html'"><i class="fi fi-sr-home"></i></button>
+            <div class="sort-options">
+                <button onclick="toggleGrid()"><i class="fi fi-sr-apps"></i></button>
+            </div>
+        </div>
+        <div id="content">
+            <div class="container">
+                <h1>MP3 Player</h1>
+                <div id="artistButtons"  class="artistButtons-grid one-per-row"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        async function loadArtists() {
+            const response = await fetch('/artists');
+            const artists = await response.json();
+            const artistButtonsDiv = document.getElementById('artistButtons');
+
+            artists.forEach(artist => {
+                const button = document.createElement('button');
+                button.classList.add('artist-button');
+
+                const img = document.createElement('img');
+                img.src = `/images/${encodeURIComponent(artist)}.jpg`; // Assuming you have artist images named by artist
+
+                const span = document.createElement('span');
+                span.textContent = artist;
+
+                button.appendChild(img);
+                button.appendChild(span);
+
+                button.addEventListener('click', () => {
+                    location.href = `/artist.html?artist=${encodeURIComponent(artist)}`;
+                });
+
+                artistButtonsDiv.appendChild(button);
+            });
+        }
+
+        function toggleGrid() {
+            const songsDiv = document.getElementById('artistButtons');
+            if (songsDiv.classList.contains('one-per-row')) {
+                songsDiv.classList.remove('one-per-row');
+                songsDiv.classList.add('two-per-row');
+            } else {
+                songsDiv.classList.remove('two-per-row');
+                songsDiv.classList.add('one-per-row');
+            }
+        }
+
+        window.onload = loadArtists;
+    </script>
+</body>
+</html>
